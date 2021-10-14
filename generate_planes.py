@@ -1,6 +1,11 @@
 import math
 import random
+import air_traffic_control
 
+# this function generates a random point along the perimeter of the air traffic control zone
+# inputs: r = radius of air traffic control zone
+# outputs: planePoint = list of x and y coordinates corresponding to the position of the 
+# 'generated airplane'
 def generatePlane(r):
 
     # initialize plane point at (0,0) - note this is not the origin/centre (random point at upper RH corner)
@@ -17,9 +22,16 @@ def generatePlane(r):
     x = r * math.acos(theta)
     y = r * math.asin(theta)
 
+    # put plane in queue to land
+    air_traffic_control.queueAirplane(planePoint)
+
     return planePoint
 
-def basicFlightPattern(f, r, new_pos, v):
+# when called, this function will generate a new plane along the perimeter of the traffic control zone
+# and guide it in a linear path towards the centre of the traffic control zone circle
+# inputs: r = radius of air traffic control zone, v = given speed of plane
+# outputs: none
+def basicFlightPattern(r, v):
 
     # start from generated point along perimeter or air traffic zone
     x_curr = generatePlane(r)[0]
@@ -46,11 +58,13 @@ def basicFlightPattern(f, r, new_pos, v):
         new_x_pos = x_dest
         new_y_pos = y_dest
 
-    new_pos = [new_x_pos, new_y_pos]
-    
-    return new_pos
+    #new_pos = [new_x_pos, new_y_pos]
+    #return new_pos
 
-
+# this function determines the maximum number of planes which can circle in a holding pattern
+# within the air traffic control zone
+# inputs: radiusZone = radius of air traffic control zone, radiusHold = radius of holding flight pattern
+# outputs: maxHoldPattern = (int) maximum number of planes which can circle within the zone
 def maxNumberOfPlanes(radiusZone, radiusHold):
 	
 	# catch-case: if user inputs smaller air traffic zone than holding pattern radius
