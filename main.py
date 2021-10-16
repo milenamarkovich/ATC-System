@@ -13,6 +13,7 @@ GREEN = (0, 255, 0)
 sf = 35
 
 #zone radius:
+global radiusZ 
 radiusZ = 10000 / sf
 
 #hold pattern radius:
