@@ -1,7 +1,7 @@
 # ATC-System
 2D Air Traffic Control System
 
-###The ATC system has the following features:
+### The ATC system has the following features:
 * Keeps track of all airplanes’ positions (latitude, longitude) within the traffic control zone.
 The traffic control zone is a circle of radius 10km.
 * Queues airplanes for landing based on time of arrival into the traffic control zone.
@@ -11,7 +11,7 @@ a radius of 1km around a suitable point.
 * The ATC must never allow for planes to come within 100m of each other, whether
 flying or landing.
 
-###An airplane has the following characteristics:
+### An airplane has the following characteristics:
 * Assume each plane is a point.
 * When an airplane appears/’spawns’ in the world, it does so at a random point on the
 edge of the traffic control zone, and it travels towards the center of the zone.
