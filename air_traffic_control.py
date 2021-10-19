@@ -129,7 +129,7 @@ def maxNumberOfPlanes(zoneRad, holdRad, dist):
     ratio = holdRad / (zoneRad - holdRad)
 
     # if hold pattern diameter > air traffic zone, we can only have one plane flying this pattern inside the zone
-    if (zoneRad < 2 * holdRad):
+    if (zoneRad < (2 * holdRad)):
 	    maxNumPlanes = 1
 	
     else:
@@ -187,7 +187,7 @@ def generatePlane(self, zRad):
 
     # generate random angle theta, to place plane along air traffic zone circumference
     # use theta = 2*pi*k for 0<=k<=1 to generate random angle
-    k = random.randint(0,1)
+    k = random.randrange(0, 1, 0.01)
     theta = 2 * math.pi * k
 
     # use circle equation to determine (x,y) point along circle using x=r*cos(theta) and y=r*sin(theta)
