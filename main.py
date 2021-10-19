@@ -1,67 +1,103 @@
-import pygame
-import generate_planes
+import math
+from time import time, sleep
+from plane_data import param, Airplane
+import plane_data
+import hold_plane
+import land_plane
 
-pygame.init()
+plane_data.chooseMode()
 
-#colors:
-BLACK = (0,0,0)
-WHITE = (255,255,255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
+##################################################################################################
+#SUPPORTING FUNCTIONS:
 
-#scale factor:
-sf = 35
+# this function determines the maximum number of planes which can circle in a holding pattern
+# within the air traffic control zone
+# inputs: zoneRad = radius of air traffic control zone, holdRad = radius of holding flight pattern,
+# dist = the allowable safe distance between planes
+# outputs: maxHoldPattern = (int) maximum number of planes which can circle within the zone
+def maxNumberOfPlanes(zoneRad, holdRad, dist):
 
-#zone radius:
-global radiusZ 
-radiusZ = 10000 / sf
+    # to ensure that even with a maximum number of planes in the air traffic control zone, no
+    # 2 airplanes will come within 100m (safeDistance) of eachother, we add safeDistance/2 to 
+    # the holding pattern radius as a 'padding'
+    holdRad = holdRad + (dist/2)
 
-#hold pattern radius:
-radiusH = 1000 / sf
+	# catch-case: if user inputs smaller air traffic zone than holding pattern radius
+    if (holdRad > zoneRad):
+	    return 0
 
-#runway dimensions:
-width = 100 / sf
-length = 500 / sf
-seperation = 500 / sf
-numRunways = 2
+    #angle made by holding pattern radius
+    angleHold = 0
+    # ratio of holding pattern radius : difference between air traffic zone and holding pattern radii
+    ratio = 0
+    # maximum holding pattern circles that can be made inside the air traffic zone (this translates to max number of planes)
+    maxNumPlanes = 0
+	# Stores the ratio
+    ratio = holdRad / (zoneRad - holdRad)
 
-#speed of plane
-v = 140 / sf
+    # if hold pattern diameter > air traffic zone, we can only have one plane flying this pattern inside the zone
+    if (zoneRad < 2 * holdRad):
+	    maxNumPlanes = 1
+	
+    else:
 
-#frequency of transmission
-freq = 10 #Hz
+		# find angle of holding pattern circle
+	    angleHold = (abs(math.asin(ratio) * 180) / 3.14159265)		
+		# use this to find the maximum number of holding pattern circle flights which can be made in the air traffic zone
+	    maxNumPlanes = (360 / (2 * math.floor(angleHold)))
+	
+	# Return the final result
+    return maxNumPlanes
 
-#safe distance between planes
-safeDistance = 100 / sf
+maxPlanes = maxNumberOfPlanes(param["radiusZ"], param["radiusH"], param["safeDistance"])
 
-size = [radiusZ*2,radiusZ*2]
-screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Air Traffic Control")
+###################################################################################################
+#MAIN FUNCTION:
 
-carryOn = True
-clock = pygame.time.Clock()
+planesInZone = 0
 
-while carryOn:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            carryOn = False
+# create int variables for ease of use throughout main function:
+radiusZ = int(param["radiusZ"])
+radiusH = int(param["radiusH"])
+width = int(param["width"])
+length = int(param["length"])
+seperation = int(param["seperation"])
+numRunways = int(param["numRunways"])
+speed = int(param["speed"])
+freq = int(param["freq"])
+safeDistance = int(param["safeDistance"])
 
-    #logic goes here:
+def main(self, other):
 
-    #drawings:
-    screen.fill(WHITE)
+    while True:
 
-    #draw traffic control zone as a circle:
-    pygame.draw.circle(screen, RED, (radiusZ,radiusZ), radiusZ, 2)
+        # if there is space in the traffic control zone, spawn an airplane and increment the
+        # number of airplanes inside the traffic control zone:
+        if (planesInZone < maxPlanes):
+            self.origin
+            planesInZone = planesInZone + 1
 
-    #draw runways as rectangles:
-    pygame.draw.rect(screen, BLACK, ((radiusZ - (seperation/2)), (radiusZ + (length/2)),width, length))
-    pygame.draw.rect(screen, BLACK, ((radiusZ + (seperation/2)), (radiusZ + (length/2)),width, length))
+        if (self.status == 1):
+            # airplane follows initial flight pattern (straight towards centre)
+            hold_plane.basicFlight(self, radiusZ, radiusH, speed)
+            
+        if (self.status == 0):
+            #plane in holding mode
+            hold_plane.flyInCircle(self, speed, radiusH, radiusZ, safeDistance, other)
 
-    #draw airplanes as points:
-    pygame.draw.line(screen, GREEN, (generate_planes.generatePlane(radiusZ)), (generate_planes.generatePlane(radiusZ)))
+        if (self.status == 1):
+            #plane directed to land
+            land_plane.flyToRunway(self, radiusZ, width, length, speed)           
+            
+            # if the plane has reached the runway, move along in straight line
+            if (self.currLocation[0] == radiusZ - (width / 2)):
+                land_plane.moveAlongRunway(self, length, speed, planesInZone)
 
-    pygame.display.flip()
-    clock.tick(60)
+        # get current position
+        self.currLocation
 
-pygame.quit()
+        # account for frequency of position readings
+        updateT = 1 / freq
+        sleep(updateT - time() % updateT)
+    
+main(Airplane.self, Airplane.other)

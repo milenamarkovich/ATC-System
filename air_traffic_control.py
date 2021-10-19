@@ -4,44 +4,76 @@ import generate_planes
 import random
 
 # create queue which will allow airplanes to land in FIFO (First In First Out) order
-airplaneLandingWait = queue.Queue(maxsize = generate_planes.maxNumberOfPlanes(rZone, rHold))
+airplaneLandingWait = queue.Queue()
 
-# places item (in this case, list containing plane coordinates) into the above generated queue
-def queueAirplane(item):
-    airplaneLandingWait.put(item)
+def getQueue():
+    return airplaneLandingWait
 
-# remove and return airplane which is next up to land from queue
-# inputs: numRunway = total number of runways available in the air traffic zone, runway = the runway
-# at which the previous plane landed (number of runway determined by counting from 1 to numRunway, left
-# to right)
-# outputs: runway = this planes landing runway number will now inform the next planes landing,
-# airplaneToLand = position of airplane which is directed to land
-def getFromQueue(numRunway, runway):
+# this function generates a random point along the perimeter of the air traffic control zone
+# inputs: zRad = zone radius
+# outputs: list, [x,y] of spawn location
+def generatePlane(self, zRad):
 
-    airplaneToLand = airplaneLandingWait.get()
-    # if the previously plane landed at any runway which is not the last (ie: right-most runways), the 
-    # next plane to land will land at the next runway over (ie: to the left)
-    if (runway < numRunway):
-        runway += 1
+    # initialize plane point at (0,0) - note this is not the origin/centre (random point at upper RH corner)
+    [x,y] = [0,0]
 
-    # if we previously landed at the last runway (ie: left-most runway), the next plane will land at
-    # the first runway (ie: right-most)
+    # generate random angle theta, to place plane along air traffic zone circumference
+    # use theta = 2*pi*k for 0<=k<=1 to generate random angle
+    k = random.randint(0,1)
+    theta = 2 * math.pi * k
+
+    # use circle equation to determine (x,y) point along circle using x=r*cos(theta) and y=r*sin(theta)
+    # r is the radius of the air traffic zone, as inputted by the user (10km per the given problem)
+    x = zRad * math.acos(theta)
+    y = zRad * math.asin(theta)
+
+    # put plane in queue to land
+    airplaneLandingWait.put(self)
+
+    return [x,y]
+
+def adjust(self, other):
+
+    # if the threat is to the left, move plane to the right:
+    if (self.currLocation[0] > other.currLocation[0]):
+        self.currLocation[0] = self.currLocation[0] + 1
+
+    # if the threat is to the right, move plane to the left:
     else:
-        runway = 1
+        self.currLocation[0] = self.currLocation[0] + 1
 
-    return runway
+    # if the threat is 'above' (along y-axis), move the plane 'down'
+    if (self.currLocation[1] > other.currLocation[1]):
+        self.currLocation[1] = self.currLocation[1] + 1
 
-def readjust():
-    #move away from nearest plane
+    # if the threat is 'below' (along y-axis), move the plane 'up'
+    else:
+        self.currLocation[1] = self.currLocation[1] - 1
 
-def doNotCrash(safeDist):
-    delta_x = #difference in x between all planes relative to eachother
-    delta_y = #difference in y between all planes relative to eachother
-    delta_r = #difference in r = math.isqrt((delta_x*delta_x)+(delta_y*delta_y)) between all planes relative to eachother
+def checkIfCrash(self, other, distSafe):
 
-    if (delta_x and delta_y and delta_r > safeDist):
-        #continue
+    # check if plane is to the left or right of 'crash threat' plane and define the horizontal distance
+    # between the two accordingly:
+    if (self.currLocation[0] > other.currLocation[0]):
+        delta_x = self.currLocation[0] - other.currLocation[0]
+    else:
+        delta_x = other.currLocation[0] - self.currLocation[0]
+
+    # check if plane is 'above' or 'below' (in the y-axis) of 'crash threat' plane and define the 
+    # vertical (y) distance between the two accordingly:
+    if (self.currLocation[1] > other.currLocation[1]):
+        delta_y = self.currLocation[1] - other.currLocation[1]
+    else:
+        delta_y = other.currLocation[1] - self.currLocation[1]
+
+    # define the diagonal distance between the two planes:
+    delta_diag = math.isqrt((delta_x * delta_x) + (delta_y * delta_y))
+
+    # if the planes are at or less than the defined safe distance (ie: 100m) between planes re-adjust 
+    # the plane flight pattern to distance itself from the 'crash threat'
+    if (delta_x <= distSafe) or (delta_y <= distSafe) or (delta_diag <= distSafe) :
+        adjust(self, other)
+        return True
 
     else:
-        readjust()
-
+        return False
