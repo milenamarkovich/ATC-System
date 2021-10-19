@@ -32,12 +32,15 @@ def basicFlight(self, radZ, radH, v):
         y_move = ratio * delta_y
         self.currLocation[0] = x_move + self.currLocation[0]
         self.currLocation[1] = y_move + self.currLocation[1]
+        return "still flying forward"
 
     else:
         self.currLocation[0] = dest_x
         self.currLocation[1] = dest_y
+        return "done"
 
-def flyInCircle(self, speed, r, rZ, safeDist, other):
+
+def flyInCircle(self, speed, r, rZ):
 
     # define starting angle and angular speed (omega)
     angle = math.radians(45)
@@ -63,11 +66,6 @@ def flyInCircle(self, speed, r, rZ, safeDist, other):
     else:
         originY = self.currLocation[1] + (r * math.cos(angle))
 
-    # if this centre point will set the plane on a collision course with another plane,
-    # we will choose a centre-point to the left of the plane
-    if (air_traffic_control.checkIfCrash(self, other, safeDist) == True):
-        originX = self.currLocation[0] + r
-    
     # while the plane is not yet signalled to land, it flies in a circle of the given holding pattern
     # radius (ie: 1km)
     while self.status == 2 :
